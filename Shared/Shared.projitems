@@ -9,5 +9,9 @@
     <Import_RootNamespace>Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethods.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Packets\FileInfoRequest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Packets\FileInfoResponse.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Packets\IPacket.cs" />
   </ItemGroup>
 </Project>

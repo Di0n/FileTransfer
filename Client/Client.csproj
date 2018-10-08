@@ -58,6 +58,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Connection.cs" />
     <Compile Include="DownloadSelectWindow.xaml.cs">
       <DependentUpon>DownloadSelectWindow.xaml</DependentUpon>
     </Compile>
@@ -131,5 +132,6 @@
   <ItemGroup>
     <Resource Include="Images\Loading-Gears-200.gif" />
   </ItemGroup>
+  <Import Project="..\Shared\Shared.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
