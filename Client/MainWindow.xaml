@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Client"
         mc:Ignorable="d"
-        Title="FileTransfer" Height="228.8" Width="230" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen">
+        Title="FileTransfer" Height="230" Width="240" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen">
     <Grid>
         <Image HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" Width="100" Source="Images/Cloud-Upload-256.png" Margin="10,0,0,0"/>
         <Image HorizontalAlignment="Left" Height="100" Margin="10,89,0,0" VerticalAlignment="Top" Width="100" Source="Images/Cloud-Download-256.png"/>
