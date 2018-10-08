@@ -23,6 +23,28 @@ namespace Client
         public MainWindow()
         {
             InitializeComponent();
+            uploadSelect_Rect.ForceCursor = true;
+        }
+
+        private void UploadClick(object sender, MouseButtonEventArgs e)
+        {
+            MessageBox.Show("Upload Window Template");
+        }
+
+        private void DownloadClick(object sender, MouseButtonEventArgs e)
+        {
+            DownloadWindow window = new DownloadWindow();
+            window.Show();
+        }
+
+        private void MouseEnterSelect(object sender, MouseEventArgs e)
+        {
+            Mouse.OverrideCursor = Cursors.Hand;
+        }
+
+        private void MouseLeaveSelect(object sender, MouseEventArgs e)
+        {
+            Mouse.OverrideCursor = Cursors.Arrow;
         }
     }
 }
