@@ -46,5 +46,14 @@ namespace Client
             await progressWindow.StartDownload(connection, File);
         }
 
+        private void WindowLoaded(object sender, RoutedEventArgs e)
+        {
+            fileName_Textblock.Text = "Name: " + File.Name;
+            fileSize_Textblock.Text = "File Size: " + File.FileSize.ToString();
+            fileFormat_Textblock.Text = "Format: " + File.FileFormat;
+            creationDate_Textblock.Text = "Date: " + File.CreationDate.ToShortDateString();
+            description_Textblock.Text = File.Description;
+        }
+
     }
 }
