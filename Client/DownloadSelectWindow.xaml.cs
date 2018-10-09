@@ -1,4 +1,5 @@
-﻿using Shared.Packets;
+﻿using Client.Properties;
+using Shared.Packets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,12 +22,10 @@ namespace Client
     /// </summary>
     public partial class DownloadSelectWindow : Window
     {
-        public DownloadSelectWindow()
-        {
-            InitializeComponent();
-        }
+        DownloadWindow window;
+        public DownloadSelectWindow() => InitializeComponent();
 
-        private void LoadClick(object sender, RoutedEventArgs e)
+        private async void LoadClick(object sender, RoutedEventArgs e)
         {
             string input = searchBox_Textbox.Text;
 
@@ -40,12 +39,40 @@ namespace Client
             ImageAnimationController controller = ImageBehavior.GetAnimationController(loadingGif_Image);
             controller.Play();
 
+            Connection connection = new Connection();
+            status_Textblock.Text = "Connecting...";
+            await connection.Connect(Settings.Default.ServerIP, Settings.Default.ServerPort);
+            status_Textblock.Text = "Connected";
             FileInfoRequest request = new FileInfoRequest(input);
+            status_Textblock.Text = "Checking for file...";
+            await connection.SendPacket(request);
+            FileInfoResponse response = await connection.ReceivePacket() as FileInfoResponse;
+            connection.Close();
+            status_Textblock.Text = "Got response...";
+            controller.Pause();
+            if (response != null)
+            {
+                window = new DownloadWindow(response.File);
+                window.download_Button.Click += DownloadButtonClick;
+                window.Owner = this;
+                window.Show();
+            }
+            else
+            {
+                
+                status_Textblock.Text = "Invalid response!";
+            }
         }
 
-        private static bool ContainsSpecialChars(string s)
+        private async void DownloadButtonClick(object sender, RoutedEventArgs e)
         {
-            return s.Any(c => !Char.IsLetterOrDigit(c));
+            Connection connection = new Connection();
+            await connection.Connect(Settings.Default.ServerIP, Settings.Default.ServerPort);
+            
         }
+
+        private static bool ContainsSpecialChars(string s) => s.Any(c => !Char.IsLetterOrDigit(c));
+
+        private void WindowClosing(object sender, System.ComponentModel.CancelEventArgs e) => window?.Close();
     }
 }
