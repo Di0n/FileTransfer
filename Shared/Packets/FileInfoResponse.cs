@@ -7,6 +7,7 @@ namespace Shared.Packets
     /*
      * {
      *  "packetType":"FileInfoResponse",
+     *  "exists" : true
      *  "data" : {
      *      "id" : "zYsW2a",
      *      "name" : "Example.docx",
@@ -19,12 +20,11 @@ namespace Shared.Packets
      */
     class FileInfoResponse : IPacket
     {
-        public NetworkFile File { get; set; }
+        public NetworkFile File { get; private set; }
+        public bool Exists { get; private set; }
+        public FileInfoResponse() { }
+        public FileInfoResponse(NetworkFile file) => File = file;
 
-        public FileInfoResponse(NetworkFile file)
-        {
-            File = file;
-        }
 
         public static IPacket ToClass(dynamic json)
         {
@@ -46,19 +46,28 @@ namespace Shared.Packets
 
         public dynamic ToJson()
         {
-            return new
-            {
-                packetType = nameof(FileInfoResponse),
-                data = new
+            if (Exists)
+                return new
+                    {
+                        packetType = nameof(FileInfoResponse),
+                        exists = Exists,
+                        data = new
+                        {
+                            id = File.ID,
+                            name = File.Name,
+                            fileFormat = File.FileFormat,
+                            creationDate = File.CreationDate.ToFileTime(),
+                            fileSize = File.FileSize,
+                            description = File.Description
+                        }
+                    };
+            else
+                return new
                 {
-                    id = File.ID,
-                    name = File.Name,
-                    fileFormat = File.FileFormat,
-                    creationDate = File.CreationDate.ToFileTime(),
-                    fileSize = File.FileSize,
-                    description = File.Description
-                }
-            };
+                    packetType = nameof(FileInfoResponse),
+                    exists = Exists,
+                    data = new { }
+                };
         }
     }
 }

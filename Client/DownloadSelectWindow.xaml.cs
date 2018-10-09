@@ -50,6 +50,9 @@ namespace Client
             connection.Close();
             status_Textblock.Text = "Got response...";
             controller.Pause();
+
+            await Task.Delay(1000);
+
             if (response != null)
             {
                 window = new DownloadWindow(response.File);
@@ -58,10 +61,7 @@ namespace Client
                 window.Show();
             }
             else
-            {
-                
                 status_Textblock.Text = "Invalid response!";
-            }
         }
 
         private async void DownloadButtonClick(object sender, RoutedEventArgs e)
