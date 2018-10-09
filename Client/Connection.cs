@@ -3,6 +3,7 @@ using Shared;
 using Shared.Packets;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
@@ -12,18 +13,20 @@ namespace Client
 {
     class Connection : IDisposable
     {
+        private const int FILE_BUFFER_SIZE = 4096;
         private TcpClient client;
-
+        public delegate void FileTransferProgressHandler(object sender, ProgressEventArgs args);
+        public event FileTransferProgressHandler FileTransferProgressChanged;
         public Connection()
         {
-            
+
         }
 
-        public async Task SendPacket(IPacket packet)
+        public Task SendPacket(IPacket packet)
         {
             NetworkStream stream = client.GetStream();
             string data = JsonConvert.SerializeObject(packet.ToJson());
-            await stream.SendAsync(Encoding.UTF8.GetBytes(data));
+            return stream.SendAsync(Encoding.UTF8.GetBytes(data));
         }
 
         public async Task<IPacket> ReceivePacket()
@@ -44,13 +47,51 @@ namespace Client
                 return null;
         }
 
-        public async Task ReceiveFileAsync()
+        public async Task ReceiveFileAsync(string fileName)
         {
             NetworkStream stream = client.GetStream();
-            
+
+            byte[] sizeInfo = new byte[sizeof(Int64)];
+
+            int sizeRead = 0;
+            int currentRead = 0;
+
+            do
+            {
+                currentRead = await stream.ReadAsync(sizeInfo, sizeRead, sizeInfo.Length - sizeRead);
+                sizeRead += currentRead;
+            } while (sizeRead < sizeInfo.Length && currentRead > 0);
+
+
+            /* fileSize |= sizeInfo[0];
+             fileSize |= (((int)sizeInfo[1]) << 8);
+             fileSize |= (((int)sizeInfo[2]) << 16);
+             fileSize |= (((int)sizeInfo[3]) << 24);*/
+
+            using (FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.None, FILE_BUFFER_SIZE, true))
+            {
+
+                long fileSize = BitConverter.ToInt64(sizeInfo, 0);
+
+                byte[] data = new byte[FILE_BUFFER_SIZE];
+
+                long fileRead = 0;
+                do
+                {
+                    long remainingBytes = fileSize - fileRead;
+                    fileRead += currentRead = await stream.ReadAsync(data, 0, remainingBytes < FILE_BUFFER_SIZE ? (int)remainingBytes : FILE_BUFFER_SIZE);
+                    Task writeTask = fileStream.WriteAsync(data, 0, currentRead);
+                    await InvokeFileProgressChanged(new ProgressEventArgs(fileRead, fileSize, 0));
+                    await writeTask;
+                } while (fileRead < fileSize && currentRead > 0);
+            }
         }
 
-        
+        private Task InvokeFileProgressChanged(ProgressEventArgs args)
+        {
+            return Task.Factory.FromAsync(FileTransferProgressChanged?.BeginInvoke(this, args, null, null), FileTransferProgressChanged.EndInvoke);
+        }
+
         private static IPacket HandlePacket(dynamic jsonData)
         {
             string packetType = jsonData.packetType;
@@ -61,10 +102,6 @@ namespace Client
                 default:
                     return null;
             }
-        }
-        public void Receive()
-        {
-
         }
 
         public async Task Connect(string ip, ushort port)
