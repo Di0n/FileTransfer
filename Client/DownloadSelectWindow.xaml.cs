@@ -1,4 +1,5 @@
 ﻿using Client.Properties;
+using Shared;
 using Shared.Packets;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using WpfAnimatedGif;
+using System.ComponentModel;
 
 namespace Client
 {
@@ -22,8 +24,12 @@ namespace Client
     /// </summary>
     public partial class DownloadSelectWindow : Window
     {
-        DownloadWindow window;
-        public DownloadSelectWindow() => InitializeComponent();
+        readonly List<Window> windows;
+        public DownloadSelectWindow()
+        {
+            InitializeComponent();
+            windows = new List<Window>();
+        }
 
         private async void LoadClick(object sender, RoutedEventArgs e)
         {
@@ -55,24 +61,54 @@ namespace Client
 
             if (response != null)
             {
-                window = new DownloadWindow(response.File);
-                window.download_Button.Click += DownloadButtonClick;
+                DownloadWindow window = new DownloadWindow(response.File);
                 window.Owner = this;
                 window.Show();
+                window.Closing += DownloadWindowClosing;
+
+                windows.Add(window);
             }
             else
                 status_Textblock.Text = "Invalid response!";
+        }
+
+        private void DownloadWindowClosing(object sender, CancelEventArgs e)
+        {
+            Window w = sender as Window;
+            if (w != null)
+                lock (windows)
+                    windows.Remove(w);
         }
 
         private async void DownloadButtonClick(object sender, RoutedEventArgs e)
         {
             Connection connection = new Connection();
             await connection.Connect(Settings.Default.ServerIP, Settings.Default.ServerPort);
+
+            DownloadWindow window = sender as DownloadWindow;
+            NetworkFile file = window.File;
             
+            // Moet uiteindelijk in een apart download window worden gemaakt
+            await connection.SendPacket(new FileDownloadRequest(file.ID));
+            connection.FileTransferProgressChanged += (o, ev) =>
+            {
+
+            };
+            await connection.ReceiveFileAsync(file.Name);
+
         }
 
+
+       
         private static bool ContainsSpecialChars(string s) => s.Any(c => !Char.IsLetterOrDigit(c));
 
-        private void WindowClosing(object sender, System.ComponentModel.CancelEventArgs e) => window?.Close();
+        private void WindowClosing(object sender, CancelEventArgs e)
+        {
+            lock (windows)
+            {
+                windows.ForEach(w => w?.Close());
+                windows.Clear();
+            }
+        }
     }
 }

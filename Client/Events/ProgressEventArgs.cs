@@ -2,7 +2,7 @@
 
 namespace Client
 {
-    class ProgressEventArgs : EventArgs
+    public class ProgressEventArgs : EventArgs
     {
         public ProgressEventArgs(long bytesTransferred, long totalBytes, int transferSpeed)
         {

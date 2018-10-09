@@ -12,7 +12,7 @@ namespace Shared.Packets
      *  }
      * }
      */
-    interface IPacket
+    public interface IPacket
     {
         dynamic ToJson();
         IPacket ToClass(dynamic json);

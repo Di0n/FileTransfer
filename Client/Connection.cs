@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Client
 {
-    class Connection : IDisposable
+    internal class Connection : IDisposable
     {
         private TcpClient client;
         public delegate void FileTransferProgressHandler(object sender, ProgressEventArgs args);

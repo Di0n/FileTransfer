@@ -1,4 +1,6 @@
-﻿using Shared;
+﻿using Client.Properties;
+using Shared;
+using Shared.Packets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,15 +18,32 @@ using System.Windows.Shapes;
 namespace Client
 {
     /// <summary>
-    /// Interaction logic for DownloadWindow.xaml
+    /// Window die het bestand laat zien. De gebruiker kan deze dan downloaden.
+    /// Renamen naar FilePreviewWindow
     /// </summary>
     public partial class DownloadWindow : Window
     {
-        private NetworkFile file;
+        private Connection connection;
+        private DownloadProgressWindow progressWindow;
         public DownloadWindow(NetworkFile file)
         {
             InitializeComponent();
-            this.file = file;
+            this.File = file;
+        }
+
+        public NetworkFile File { get; private set; }
+
+        private async void DownloadClick(object sender, RoutedEventArgs e)
+        {
+            connection = new Connection();
+            await connection.Connect(Settings.Default.ServerIP, Settings.Default.ServerPort);
+            await connection.SendPacket(new FileDownloadRequest(File.ID));
+            download_Button.IsEnabled = false;
+
+            progressWindow = new DownloadProgressWindow();
+            progressWindow.Owner = this;
+            progressWindow.Show();
+            await progressWindow.StartDownload(connection, File);
         }
 
     }

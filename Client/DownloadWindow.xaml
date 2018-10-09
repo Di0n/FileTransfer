@@ -13,7 +13,7 @@
         <TextBlock x:Name="fileFormat_Textblock" HorizontalAlignment="Left" Margin="115,52,0,0" TextWrapping="Wrap" Text="Format: .DOCX" VerticalAlignment="Top"/>
         <TextBlock x:Name="creationDate_Textblock" HorizontalAlignment="Left" Margin="115,73,0,0" TextWrapping="Wrap" Text="Date: 01-10-2018" VerticalAlignment="Top"/>
         <TextBlock x:Name="description_Textblock" HorizontalAlignment="Left" Margin="10,110,0,0" TextWrapping="Wrap" Text="Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim." VerticalAlignment="Top" Height="70" Width="423"/>
-        <Button x:Name="download_Button" Content="Download" Margin="10,210,0,0" VerticalAlignment="Top" Width="423" Height="50" HorizontalAlignment="Left" HorizontalContentAlignment="Center"/>
+        <Button x:Name="download_Button" Content="Download" Margin="10,210,0,0" VerticalAlignment="Top" Width="423" Height="50" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Click="DownloadClick"/>
 
     </Grid>
 </Window>
