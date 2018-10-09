@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Shared.Packets;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -39,10 +40,10 @@ namespace Client
             ImageAnimationController controller = ImageBehavior.GetAnimationController(loadingGif_Image);
             controller.Play();
 
-            
+            FileInfoRequest request = new FileInfoRequest(input);
         }
 
-        private bool ContainsSpecialChars(string s)
+        private static bool ContainsSpecialChars(string s)
         {
             return s.Any(c => !Char.IsLetterOrDigit(c));
         }

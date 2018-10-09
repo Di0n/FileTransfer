@@ -1,4 +1,5 @@
-﻿using Shared;
+﻿using Newtonsoft.Json;
+using Shared;
 using Shared.Packets;
 using System;
 using System.Collections.Generic;
@@ -21,9 +22,46 @@ namespace Client
         public async Task SendPacket(IPacket packet)
         {
             NetworkStream stream = client.GetStream();
-            //stream.WriteAsync();
+            string data = JsonConvert.SerializeObject(packet.ToJson());
+            await stream.SendAsync(Encoding.UTF8.GetBytes(data));
         }
 
+        public async Task<IPacket> ReceivePacket()
+        {
+            NetworkStream stream = client.GetStream();
+            byte[] buffer = await stream.ReceiveAsync();
+
+            if (buffer.Length > 0)
+            {
+                string data = Encoding.UTF8.GetString(buffer);
+                dynamic jsonData = JsonConvert.DeserializeObject(data);
+
+                IPacket packet = HandlePacket(jsonData);
+
+                return packet;
+            }
+            else
+                return null;
+        }
+
+        public async Task ReceiveFileAsync()
+        {
+            NetworkStream stream = client.GetStream();
+            
+        }
+
+        
+        private static IPacket HandlePacket(dynamic jsonData)
+        {
+            string packetType = jsonData.packetType;
+            switch (packetType)
+            {
+                case nameof(FileInfoResponse):
+                    return FileInfoResponse.ToClass(jsonData);
+                default:
+                    return null;
+            }
+        }
         public void Receive()
         {
 
