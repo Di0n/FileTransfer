@@ -19,22 +19,11 @@ namespace Shared.Packets
      */
     class FileInfoResponse : IPacket
     {
-        public string ID { get; private set; }
-        public string Name { get; private set; }
-        public string FileFormat { get; private set; }
-        public DateTime CreationDate { get; private set; }
-        public long FileSize { get; private set; }
-        public string Description { get; private set; }
+        public NetworkFile File { get; set; }
 
-        public FileInfoResponse(string id, string name, string fileFormat, 
-            DateTime creationDate, long fileSize, string description)
+        public FileInfoResponse(NetworkFile file)
         {
-            ID = id;
-            Name = name;
-            FileFormat = fileFormat;
-            CreationDate = creationDate;
-            FileSize = fileSize;
-            Description = description;
+            File = file;
         }
 
         public static IPacket ToClass(dynamic json)
@@ -46,8 +35,8 @@ namespace Shared.Packets
             long fileSize = (long)json.data.fileSize;
             string description = (string)json.data.description;
 
-            return new FileInfoResponse(id, name, fileFormat,
-                creationDate, fileSize, description);
+            return new FileInfoResponse(new NetworkFile(id, name, fileFormat,
+                creationDate, fileSize, description));
         }
 
         IPacket IPacket.ToClass(dynamic json)
@@ -62,12 +51,12 @@ namespace Shared.Packets
                 packetType = nameof(FileInfoResponse),
                 data = new
                 {
-                    id = ID,
-                    name = Name,
-                    fileFormat = FileFormat,
-                    creationDate = CreationDate.ToFileTime(),
-                    fileSize = FileSize,
-                    description = Description
+                    id = File.ID,
+                    name = File.Name,
+                    fileFormat = File.FileFormat,
+                    creationDate = File.CreationDate.ToFileTime(),
+                    fileSize = File.FileSize,
+                    description = File.Description
                 }
             };
         }

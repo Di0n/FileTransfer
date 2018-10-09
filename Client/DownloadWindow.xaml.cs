@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Shared;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,9 +20,12 @@ namespace Client
     /// </summary>
     public partial class DownloadWindow : Window
     {
-        public DownloadWindow()
+        private NetworkFile file;
+        public DownloadWindow(NetworkFile file)
         {
             InitializeComponent();
+            this.file = file;
         }
+
     }
 }
