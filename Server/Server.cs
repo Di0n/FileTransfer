@@ -136,7 +136,73 @@ namespace Server
         
         private void ReceiveFileCallback(IAsyncResult ar)
         {
+            FileStateObject state = (FileStateObject)ar.AsyncState;
 
+            Socket handler = state.Client.Socket;
+
+            int read = handler.EndReceive(ar);
+
+            if (read > 0)
+            {
+                state.Output.BeginWrite(state.Buffer, 0, read, new AsyncCallback(new Action<IAsyncResult>((result) =>
+                {
+                    FileStateObject fso = (FileStateObject)result.AsyncState;
+                    fso.Output.EndWrite(result);
+
+                    if (state.BytesToReceive == state.BytesReceived)
+                    {
+                        SendPacket(fso.Client, null, SendCallback, FollowUpTask.DISCONNECT);
+                    }
+                })), state);
+            }
+            else
+            {
+                throw new Exception("Read 0"); // DEBUG
+            }
+        }
+
+        private void SendPacket(Client client, IPacket packet, AsyncCallback callback, FollowUpTask task)
+        {
+            Socket handler = client.Socket;
+            byte[] buffer =  Util.NetworkUtils.CreatePacket(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(packet.ToJson())));
+            handler.BeginSend(buffer, 0, buffer.Length, 0, callback, new Tuple<Client, FollowUpTask>(client, task));
+        }
+        private void SendCallback(IAsyncResult ar)
+        {
+            Tuple<Client, FollowUpTask> tuple = (Tuple<Client, FollowUpTask>)ar.AsyncState;
+
+            Client client = tuple.Item1;
+            Socket handler = client.Socket;
+            FollowUpTask followUp = tuple.Item2;
+
+            int sent = handler.EndSend(ar);
+#if DEBUG
+            Console.WriteLine($"Sent {sent} bytes to {handler.RemoteEndPoint}");
+#endif
+
+            switch (followUp)
+            {
+                case FollowUpTask.RECEIVE_MSG:
+                    MessageState state = new MessageState(client);
+                    handler.BeginReceive(state.Buffer, 0, StateObject.BufferSize, 0, ReceiveCallback, state);
+                    break;
+                case FollowUpTask.DISCONNECT:
+                    DisconnectClient(client);
+                    break;
+                default:
+                    break;
+            }
+
+        }
+
+        private void DisconnectClient(Client client)
+        {
+            Socket socket = client.Socket;
+            if (socket != null && socket.Connected)
+            {
+                socket.Shutdown(SocketShutdown.Both);
+                socket.Close();
+            }
         }
 
         /// <summary>
@@ -210,7 +276,7 @@ namespace Server
         private void HandleFileUploadRequest(FileUploadRequest request, StateObject state)
         {
             FileStateObject fileState = new FileStateObject(state.Client, request.FileName, request.FileSize);
-            state.Client.Socket.BeginReceive(state.Buffer, 0, FileStateObject.BufferSize, 0, ReceiveCallback, fileState);
+            state.Client.Socket.BeginReceive(state.Buffer, 0, FileStateObject.BufferSize, 0, ReceiveFileCallback, fileState);
         }
 
         /// <summary>
@@ -248,14 +314,23 @@ namespace Server
         private class FileStateObject : StateObject
         {
             public new static int BufferSize { get { return 4096; } }
-            public FileStateObject Output { get; set; }
+            public FileStream Output { get; set; }
             public string FileName { get; private set; }
             public long BytesToReceive { get; private set; }
+            public long BytesReceived { get; set; }
             public FileStateObject(Client client, string fileName, long bytesToReceive):base(client)
             {
                 FileName = fileName;
                 BytesToReceive = bytesToReceive;
             }
+        }
+
+        private enum FollowUpTask
+        {
+            RECEIVE_MSG,
+            RECEIVE_FILE,
+            DISCONNECT,
+            NOTHING
         }
 
 
