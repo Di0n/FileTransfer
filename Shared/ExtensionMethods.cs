@@ -54,7 +54,7 @@ namespace Shared
             //return Encoding.UTF8.GetString(data, 0, totalRead);
         }
 
-        public static async Task ReceiveFileAsync(this NetworkStream stream, string path, long fileSize, int bufferSize = 4096)
+        public static async Task ReceiveFileAsync(this NetworkStream stream, string path, long fileSize,  int bufferSize = 4096)
         {
             /*byte[] sizeInfo = new byte[sizeof(Int64)];
 

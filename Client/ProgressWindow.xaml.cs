@@ -1,4 +1,5 @@
-﻿using Shared;
+﻿using Client.Properties;
+using Shared;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,12 +31,28 @@ namespace Client
         {
             this.file = file;
             connection.FileTransferProgressChanged += FileTransferProgressChanged;
-            return connection.ReceiveFileAsync(file.Name);
+            progressBar_Pb.Maximum = file.FileSize;
+            return Task.Run(async () =>
+            {
+                await connection.ReceiveFileAsync(Settings.Default.DownloadPath + file.Name, file.FileSize);
+            });
         }
 
-        private void FileTransferProgressChanged(object sender, ProgressEventArgs args)
+        private async void FileTransferProgressChanged(object sender, ProgressEventArgs args)
         {
             Console.WriteLine($"{args.BytesTransferred}/{args.TotalBytes}\nSpeed: {args.TransferSpeed}\n");
+            //progress_Textblock.Text = $"{ args.BytesTransferred}/{ args.TotalBytes}";
+
+
+            await progressBar_Pb.Dispatcher.BeginInvoke((Action)(() =>
+            {
+                progressBar_Pb.Value = args.BytesTransferred;
+            }));
+
+            await progress_Textblock.Dispatcher.BeginInvoke((Action)(() =>
+            {
+                progress_Textblock.Text = $"{ args.BytesTransferred}/{ args.TotalBytes}";
+            }));
         }
 
         private void WindowLoaded(object sender, RoutedEventArgs e)

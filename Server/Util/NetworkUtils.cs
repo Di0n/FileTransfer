@@ -1,6 +1,8 @@
-﻿using Shared;
+﻿using Server.Properties;
+using Shared;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -36,6 +38,11 @@ namespace Server.Util
                 fileSize = file.FileSize,
                 description = file.Description
             };
+        }
+        public static string GetAssociatedFile(string path, string id)
+        {
+            return Directory.EnumerateFiles(path, "*.*", SearchOption.TopDirectoryOnly)
+                .Where(f => !f.EndsWith(".json")).ToList().Find(f => f.Substring(f.LastIndexOf("\\")+1).StartsWith(id, StringComparison.InvariantCulture));
         }
     }
 }

@@ -12,7 +12,7 @@ namespace Client.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "15.3.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "15.8.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -34,22 +34,52 @@ namespace Client.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("14567")]
+        [global::System.Configuration.DefaultSettingValueAttribute("33000")]
         public ushort ServerPort {
             get {
                 return ((ushort)(this["ServerPort"]));
             }
         }
         
-        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("4096")]
-        public int FileBufferSize {
+        public int FileWriteBufferSize {
             get {
-                return ((int)(this["FileBufferSize"]));
+                return ((int)(this["FileWriteBufferSize"]));
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Downloads\\\\")]
+        public string DownloadPath {
+            get {
+                return ((string)(this["DownloadPath"]));
             }
             set {
-                this["FileBufferSize"] = value;
+                this["DownloadPath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("4096")]
+        public int FileTransferBufferSize {
+            get {
+                return ((int)(this["FileTransferBufferSize"]));
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1024")]
+        public int PacketBufferSize {
+            get {
+                return ((int)(this["PacketBufferSize"]));
+            }
+            set {
+                this["PacketBufferSize"] = value;
             }
         }
     }

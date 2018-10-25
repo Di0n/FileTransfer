@@ -25,7 +25,7 @@ namespace Server.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Files")]
+        [global::System.Configuration.DefaultSettingValueAttribute("Files\\\\")]
         public string FileFolder {
             get {
                 return ((string)(this["FileFolder"]));
@@ -38,6 +38,36 @@ namespace Server.Properties {
         public ushort ServerPort {
             get {
                 return ((ushort)(this["ServerPort"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1024")]
+        public int MessageBufferSize {
+            get {
+                return ((int)(this["MessageBufferSize"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("4096")]
+        public int FileWriteBufferSize {
+            get {
+                return ((int)(this["FileWriteBufferSize"]));
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("4096")]
+        public string FileTransferBufferSize {
+            get {
+                return ((string)(this["FileTransferBufferSize"]));
+            }
+            set {
+                this["FileTransferBufferSize"] = value;
             }
         }
     }

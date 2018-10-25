@@ -44,12 +44,13 @@ namespace Server
             updater.Elapsed += UpdateElapsed;
         }
 
-        
+
         /// <summary>
         /// Start de server.
         /// </summary>
         private void Start()
         {
+            Directory.CreateDirectory(Settings.Default.FileFolder);
             using (listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
             {
 #if USE_LOCAL
@@ -81,14 +82,18 @@ namespace Server
         private void ConnectCallback(IAsyncResult ar)
         {
             Socket listener = (Socket)ar.AsyncState;
-            
+
             Client client = listener.EndAccept(ar);
 
             resetEvent.Set();
+
+            lock (connectedClients)
+                connectedClients.Add(client);
 #if DEBUG
             Console.WriteLine($"Client {client.Socket.RemoteEndPoint} connected to the server.");
 #endif
             MessageState state = new MessageState(client);
+
 
             client.Socket.BeginReceive(state.Buffer, 0, MessageState.BufferSize, 0, ReceiveMessageCallback, state);
         }
@@ -136,7 +141,7 @@ namespace Server
             }
             handler.BeginReceive(state.Buffer, 0, MessageState.BufferSize, 0, ReceiveCallback, state);
         }
-        
+
         private void ReceiveFileCallback(IAsyncResult ar)
         {
             FileStateObject state = (FileStateObject)ar.AsyncState;
@@ -153,9 +158,9 @@ namespace Server
                     state.ID = id;
                     string fileName = Settings.Default.FileFolder + id;
 
-                    return new FileStream(fileName, FileMode.CreateNew, FileAccess.Write, FileShare.None, 4096, true);  
+                    return new FileStream(fileName, FileMode.CreateNew, FileAccess.Write, FileShare.None, Settings.Default.FileWriteBufferSize, true);
                 })();
-                state.Output.BeginWrite(state.Buffer, 0, read, WriteFileCallback, state); 
+                state.Output.BeginWrite(state.Buffer, 0, read, WriteFileCallback, state);
             }
             else
             {
@@ -195,7 +200,7 @@ namespace Server
         private void SendPacket(Client client, IPacket packet, AsyncCallback callback, FollowUpTask task)
         {
             Socket handler = client.Socket;
-            byte[] buffer =  Util.NetworkUtils.CreatePacket(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(packet.ToJson())));
+            byte[] buffer = Util.NetworkUtils.CreatePacket(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(packet.ToJson())));
             handler.BeginSend(buffer, 0, buffer.Length, 0, callback, new Tuple<Client, FollowUpTask>(client, task));
         }
 
@@ -220,7 +225,8 @@ namespace Server
             {
                 case FollowUpTask.RECEIVE_MSG:
                     MessageState state = new MessageState(client);
-                    handler.BeginReceive(state.Buffer, 0, StateObject.BufferSize, 0, ReceiveCallback, state);
+                    //handler.BeginReceive(state.Buffer, 0, StateObject.BufferSize, 0, ReceiveCallback, state);
+                    Receive(client, state.Buffer, 0, StateObject.BufferSize, 0, ReceiveCallback, state);
                     break;
                 case FollowUpTask.DISCONNECT:
                     DisconnectClient(client);
@@ -228,6 +234,32 @@ namespace Server
                 default:
                     break;
             }
+        }
+
+        private void Receive(Client client, byte[] buffer, int offset, int size, SocketFlags flags, AsyncCallback callback, object state)
+        {
+
+            try
+            {
+                client.Socket.BeginReceive(buffer, offset, size, flags, callback, state);
+            }
+            catch (SocketException sx)
+            {
+                if (sx.SocketErrorCode == SocketError.ConnectionAborted)
+                {
+                    ClientDisconnected(client);
+                }
+                else
+                    throw sx;
+            }
+
+        }
+
+        private void ClientDisconnected(Client client)
+        {
+            Console.WriteLine($"Client: {client.Socket.RemoteEndPoint} disconnected.");
+            lock (connectedClients)
+                connectedClients.Remove(client);
         }
 
         /// <summary>
@@ -256,22 +288,16 @@ namespace Server
 
             int read = handler.EndReceive(ar);
 
-          /*  if (state is MessageState)
-                HandleMessage(state as MessageState, read);
-            else if (state is FileStateObject)
-                HandleFile(state as FileStateObject, read);*/
-            
+            /*  if (state is MessageState)
+                  HandleMessage(state as MessageState, read);
+              else if (state is FileStateObject)
+                  HandleFile(state as FileStateObject, read);*/
+
             /*if (dataType == 0)
                 handler.BeginReceive(state.Buffer, 0, StateObject.BufferSize, 0, ReceiveCallback, state);
             else if (dataType == 1)
                 handler.BeginReceive(state.Buffer, 0, StateObject.BufferSize, 0, ReceiveFileCallback, state);*/
         }
-
-        private void HandleFile(FileStateObject state, int read)
-        {
-
-        }
-
 
         /// <summary>
         /// Bekijkt wat voor soort packet er is gestuurd.
@@ -297,7 +323,7 @@ namespace Server
             }
         }
 
-
+        
         /// <summary>
         /// Handelt een bestand info aanvraag af.
         /// </summary>
@@ -305,7 +331,9 @@ namespace Server
         private void HandleFileInfoRequest(FileInfoRequest request, StateObject state)
         {
             string path = Settings.Default.FileFolder + request.ID;
-            bool exists = File.Exists(path);
+            string fileWithExtension = NetworkUtils.GetAssociatedFile(Settings.Default.FileFolder, request.ID);
+            bool exists = File.Exists(fileWithExtension);
+            
 
             FileInfoResponse response = new FileInfoResponse();
             if (exists)
@@ -313,10 +341,14 @@ namespace Server
                 string text = File.ReadAllText(path + ".json");
                 dynamic json = JsonConvert.DeserializeObject(text);
                 NetworkFile file = Util.NetworkUtils.FromJson(json);
+                FileInfo fi = new FileInfo(fileWithExtension);
+
+                file.FileSize = fi.Length;
+                file.CreationDate = fi.CreationTimeUtc;
                 response = new FileInfoResponse(file);
             }
+            //state.Client.Socket.BeginReceive(state.Buffer, 0, StateObject.BufferSize, 0, ReceiveMessageCallback, state);
             SendPacket(state.Client, response, SendCallback, FollowUpTask.RECEIVE_MSG);
-            state.Client.Socket.BeginReceive(state.Buffer, 0, StateObject.BufferSize, 0, ReceiveMessageCallback, state);
         }
 
         /// <summary>
@@ -325,9 +357,9 @@ namespace Server
         /// <param name="request"></param>
         private void HandleFileDownloadRequest(FileDownloadRequest request, Client client)
         {
-            string path = Settings.Default.FileFolder + request.ID;
+            string path = NetworkUtils.GetAssociatedFile(Settings.Default.FileFolder, request.ID);
             bool exists = File.Exists(path);
-         
+
             if (exists)
                 client.Socket.BeginSendFile(path, SendFileCallback, client);
         }
@@ -363,13 +395,13 @@ namespace Server
         /// <param name="e"></param>
         private void UpdateElapsed(object sender, ElapsedEventArgs e)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         private abstract class StateObject
         {
             public Client Client { get; private set; }
-            public static int BufferSize { get { return 1024; } }
+            public static int BufferSize { get { return Settings.Default.MessageBufferSize; } }
             public byte[] Buffer { get; private set; }
             public StateObject(Client client)
             {
@@ -379,10 +411,10 @@ namespace Server
         }
 
         private class MessageState : StateObject
-        { 
+        {
             public byte[] Data { get; set; }
 
-            public MessageState(Client client):base(client)
+            public MessageState(Client client) : base(client)
             {
                 Data = new byte[0];
             }
@@ -390,14 +422,14 @@ namespace Server
 
         private class FileStateObject : StateObject
         {
-            public new static int BufferSize { get { return 4096; } }
+            public new static int BufferSize { get { return Settings.Default.FileWriteBufferSize; } }
             public FileStream Output { get; set; }
             public NetworkFile File { get; private set; }
             public long BytesToReceive { get; private set; }
             public long BytesReceived { get; set; }
 
             public string ID { get; set; }
-            public FileStateObject(Client client, NetworkFile file):base(client)
+            public FileStateObject(Client client, NetworkFile file) : base(client)
             {
                 File = file;
                 BytesToReceive = file.FileSize;
