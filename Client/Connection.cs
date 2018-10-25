@@ -14,12 +14,12 @@ namespace Client
 {
     internal class Connection : IDisposable
     {
-        private TcpClient client;
+        private readonly TcpClient client;
         public delegate void FileTransferProgressHandler(object sender, ProgressEventArgs args);
         public event FileTransferProgressHandler FileTransferProgressChanged;
         public Connection()
         {
-
+            client = new TcpClient();
         }
 
         public Task SendPacket(IPacket packet)
