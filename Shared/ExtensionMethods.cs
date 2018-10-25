@@ -9,6 +9,14 @@ namespace Shared
 {
     public static class ExtensionMethods
     {
+        public enum SizeUnit
+        {
+            B,
+            kB,
+            MB,
+            GB
+        }
+
         public static Task SendAsync(this NetworkStream stream, byte[] data)
         {
             byte[] lengthBuffer = BitConverter.GetBytes(data.Length);
@@ -97,6 +105,11 @@ namespace Shared
             Buffer.BlockCopy(bytes, 0, data, 0, bytes.Length);
             Buffer.BlockCopy(b, 0, data, bytes.Length, count);
             return data;
-}
+        }
+
+        public static string ConvertFileSize(long byteSize, SizeUnit unit)
+        {
+            return (byteSize / (double)Math.Pow(1024, (long)unit)).ToString("0.00") + " " + unit.ToString();
+        }
     }
 }

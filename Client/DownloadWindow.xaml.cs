@@ -54,7 +54,7 @@ namespace Client
             //BitmapImage img = GetBitmapImage(icon);
 
             //fileIcon_Image.Source = img;
-            //fileIcon_Image.Source = GetBitmapImage(FileIcon.GetJumboIcon(File.FileFormat));
+            fileIcon_Image.Source = GetBitmapImage(FileIcon.GetJumboIcon(File.FileFormat));
             fileName_Textblock.Text = "Name: " + File.Name;
             fileSize_Textblock.Text = "File Size: " + File.FileSize.ToString();
             fileFormat_Textblock.Text = "Format: " + File.FileFormat;

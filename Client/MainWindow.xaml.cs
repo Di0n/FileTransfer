@@ -28,7 +28,11 @@ namespace Client
 
         private void UploadClick(object sender, MouseButtonEventArgs e)
         {
-            MessageBox.Show("Upload Window Template");
+            //MessageBox.Show("Upload Window Template");
+            window = new UploadSelectWindow();
+            this.Visibility = Visibility.Hidden;
+            window.Show();
+            window.Closed += WindowClosed;
         }
 
         private void DownloadClick(object sender, MouseButtonEventArgs e)
