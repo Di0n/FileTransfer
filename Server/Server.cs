@@ -3,6 +3,7 @@ using Shared;
 using Shared.Packets;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -84,25 +85,18 @@ namespace Server
 #if DEBUG
             Console.WriteLine($"Client {client.Socket.RemoteEndPoint} connected to the server.");
 #endif
-            StateObject state = new StateObject()
-            {
-                Client = client
-            };
+            MessageState state = new MessageState(client);
 
-            client.Socket.BeginReceive(state.Buffer, 0, StateObject.BufferSize, 0, ReceiveCallback, state);
+            client.Socket.BeginReceive(state.Buffer, 0, MessageState.BufferSize, 0, ReceiveCallback, state);
         }
 
-        /// <summary>
-        /// Wordt aangeroepen wanneer er data binnenkomt.
-        /// </summary>
-        /// <param name="ar"></param>
-        private void ReceiveCallback(IAsyncResult ar)
+        private void ReceiveMessageCallback(IAsyncResult ar)
         {
-            StateObject state = (StateObject)ar.AsyncState;
-
+            MessageState state = (MessageState)ar.AsyncState;
             Socket handler = state.Client.Socket;
 
             int read = handler.EndReceive(ar);
+
             state.Data = state.Data.Combine(state.Buffer, read);
 
             while (state.Data.Length >= sizeof(Int32))
@@ -122,7 +116,8 @@ namespace Server
                     try
                     {
                         jsonData = JsonConvert.DeserializeObject(data);
-                        HandlePacket(jsonData, handler);
+                        HandlePacket(jsonData, state);
+                        return;
                     }
                     catch (JsonReaderException)
                     {
@@ -136,29 +131,58 @@ namespace Server
                 }
                 else break;
             }
-            handler.BeginReceive(state.Buffer, 0, StateObject.BufferSize, 0, ReceiveCallback, state);
+            handler.BeginReceive(state.Buffer, 0, MessageState.BufferSize, 0, ReceiveCallback, state);
+        }
+        
+        private void ReceiveFileCallback(IAsyncResult ar)
+        {
+
         }
 
-        private void ReceiveFileCallback()
+        /// <summary>
+        /// Wordt aangeroepen wanneer er data binnenkomt.
+        /// </summary>
+        /// <param name="ar"></param>
+        private void ReceiveCallback(IAsyncResult ar)
         {
+            StateObject state = (StateObject)ar.AsyncState;
+
+            Socket handler = state.Client.Socket;
+
+            int read = handler.EndReceive(ar);
+
+          /*  if (state is MessageState)
+                HandleMessage(state as MessageState, read);
+            else if (state is FileStateObject)
+                HandleFile(state as FileStateObject, read);*/
             
+            /*if (dataType == 0)
+                handler.BeginReceive(state.Buffer, 0, StateObject.BufferSize, 0, ReceiveCallback, state);
+            else if (dataType == 1)
+                handler.BeginReceive(state.Buffer, 0, StateObject.BufferSize, 0, ReceiveFileCallback, state);*/
         }
+
+        private void HandleFile(FileStateObject state, int read)
+        {
+
+        }
+
 
         /// <summary>
         /// Bekijkt wat voor soort packet er is gestuurd.
         /// </summary>
         /// <param name="jsonData"></param>
         /// <param name="socket"></param>
-        private void HandlePacket(dynamic jsonData, Socket socket)
+        private void HandlePacket(dynamic jsonData, StateObject state)
         {
             string packetType = (string)jsonData.packetType;
             switch (packetType)
             {
                 case nameof(FileInfoRequest):
-                    HandleFileInfoRequest(FileInfoRequest.ToClass(jsonData));
+                    HandleFileInfoRequest(FileInfoRequest.ToClass(jsonData), state);
                     break;
                 case nameof(FileDownloadRequest):
-                    HandleFileDownloadRequest(FileDownloadRequest.ToClass(jsonData));
+                    HandleFileDownloadRequest(FileDownloadRequest.ToClass(jsonData), state);
                     break;
                 default:
                     break;
@@ -169,18 +193,24 @@ namespace Server
         /// Handelt een bestand info aanvraag af.
         /// </summary>
         /// <param name="request"></param>
-        private void HandleFileInfoRequest(FileInfoRequest request)
+        private void HandleFileInfoRequest(FileInfoRequest request, StateObject state)
         {
-
+            
         }
 
         /// <summary>
         /// Handelt een bestand download af.
         /// </summary>
         /// <param name="request"></param>
-        private void HandleFileDownloadRequest(FileDownloadRequest request)
+        private void HandleFileDownloadRequest(FileDownloadRequest request, StateObject state)
         {
+            
+        }
 
+        private void HandleFileUploadRequest(FileUploadRequest request, StateObject state)
+        {
+            FileStateObject fileState = new FileStateObject(state.Client, request.FileName, request.FileSize);
+            state.Client.Socket.BeginReceive(state.Buffer, 0, FileStateObject.BufferSize, 0, ReceiveCallback, fileState);
         }
 
         /// <summary>
@@ -193,7 +223,43 @@ namespace Server
             throw new NotImplementedException();
         }
 
-        private class StateObject
+        private abstract class StateObject
+        {
+            public Client Client { get; private set; }
+            public static int BufferSize { get { return 1024; } }
+            public byte[] Buffer { get; private set; }
+            public StateObject(Client client)
+            {
+                this.Client = client;
+                this.Buffer = new byte[BufferSize];
+            }
+        }
+
+        private class MessageState : StateObject
+        { 
+            public byte[] Data { get; set; }
+
+            public MessageState(Client client):base(client)
+            {
+                Data = new byte[0];
+            }
+        }
+
+        private class FileStateObject : StateObject
+        {
+            public new static int BufferSize { get { return 4096; } }
+            public FileStateObject Output { get; set; }
+            public string FileName { get; private set; }
+            public long BytesToReceive { get; private set; }
+            public FileStateObject(Client client, string fileName, long bytesToReceive):base(client)
+            {
+                FileName = fileName;
+                BytesToReceive = bytesToReceive;
+            }
+        }
+
+
+        /*private class StateObject
         {
             public Client Client { get; set; }
             public static int BufferSize { get { return 1024; } }
@@ -204,6 +270,6 @@ namespace Server
                 Buffer = new byte[BufferSize];
                 Data = new byte[0];
             }
-        }
+        }*/
     }
 }
