@@ -11,6 +11,7 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethods.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NetworkFile.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Packets\DownloadID.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Packets\FileDownloadRequest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Packets\FileInfoRequest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Packets\FileInfoResponse.cs" />

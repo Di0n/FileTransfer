@@ -1,4 +1,6 @@
 ﻿using Newtonsoft.Json;
+using Server.Properties;
+using Server.Util;
 using Shared;
 using Shared.Packets;
 using System;
@@ -53,7 +55,7 @@ namespace Server
 #if USE_LOCAL
                 listener.Bind(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 33000));
 #else
-                listener.Bind(new IPEndPoint(IPAddress.Any, 33000));
+                listener.Bind(new IPEndPoint(IPAddress.Any, Settings.Default.ServerPort));
 #endif
 
                 listener.Listen(25);
@@ -79,15 +81,16 @@ namespace Server
         private void ConnectCallback(IAsyncResult ar)
         {
             Socket listener = (Socket)ar.AsyncState;
-
+            
             Client client = listener.EndAccept(ar);
 
+            resetEvent.Set();
 #if DEBUG
             Console.WriteLine($"Client {client.Socket.RemoteEndPoint} connected to the server.");
 #endif
             MessageState state = new MessageState(client);
 
-            client.Socket.BeginReceive(state.Buffer, 0, MessageState.BufferSize, 0, ReceiveCallback, state);
+            client.Socket.BeginReceive(state.Buffer, 0, MessageState.BufferSize, 0, ReceiveMessageCallback, state);
         }
 
         private void ReceiveMessageCallback(IAsyncResult ar)
@@ -144,16 +147,15 @@ namespace Server
 
             if (read > 0)
             {
-                state.Output.BeginWrite(state.Buffer, 0, read, new AsyncCallback(new Action<IAsyncResult>((result) =>
+                state.Output = state.Output ?? new Func<FileStream>(() =>
                 {
-                    FileStateObject fso = (FileStateObject)result.AsyncState;
-                    fso.Output.EndWrite(result);
+                    string id = RandomIDGenerator.GetBase62(5);
+                    state.ID = id;
+                    string fileName = Settings.Default.FileFolder + id;
 
-                    if (state.BytesToReceive == state.BytesReceived)
-                    {
-                        SendPacket(fso.Client, null, SendCallback, FollowUpTask.DISCONNECT);
-                    }
-                })), state);
+                    return new FileStream(fileName, FileMode.CreateNew, FileAccess.Write, FileShare.None, 4096, true);  
+                })();
+                state.Output.BeginWrite(state.Buffer, 0, read, WriteFileCallback, state); 
             }
             else
             {
@@ -161,12 +163,46 @@ namespace Server
             }
         }
 
+        /// <summary>
+        /// Callback voor download schrijven naar bestand.
+        /// </summary>
+        /// <param name="ar"></param>
+        private void WriteFileCallback(IAsyncResult ar)
+        {
+            FileStateObject state = (FileStateObject)ar.AsyncState;
+            state.Output.EndWrite(ar);
+
+            Socket handler = state.Client.Socket;
+
+            if (state.BytesToReceive == state.BytesReceived)
+            {
+                string json = JsonConvert.SerializeObject(NetworkUtils.ToJson(state.File));
+                File.WriteAllText(Settings.Default.FileFolder + state.ID + ".json", json);
+                SendPacket(state.Client, new DownloadID(state.ID), SendCallback, FollowUpTask.DISCONNECT);
+            }
+            else
+                handler.BeginReceive(state.Buffer, 0, FileStateObject.BufferSize, 0, ReceiveFileCallback,
+                    state);
+        }
+
+        /// <summary>
+        /// Verstuurt een packet naar de ingegeven client.
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="packet"></param>
+        /// <param name="callback"></param>
+        /// <param name="task"></param>
         private void SendPacket(Client client, IPacket packet, AsyncCallback callback, FollowUpTask task)
         {
             Socket handler = client.Socket;
             byte[] buffer =  Util.NetworkUtils.CreatePacket(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(packet.ToJson())));
             handler.BeginSend(buffer, 0, buffer.Length, 0, callback, new Tuple<Client, FollowUpTask>(client, task));
         }
+
+        /// <summary>
+        /// Callback verzenden.
+        /// </summary>
+        /// <param name="ar"></param>
         private void SendCallback(IAsyncResult ar)
         {
             Tuple<Client, FollowUpTask> tuple = (Tuple<Client, FollowUpTask>)ar.AsyncState;
@@ -192,9 +228,12 @@ namespace Server
                 default:
                     break;
             }
-
         }
 
+        /// <summary>
+        /// Dropt de client van de server.
+        /// </summary>
+        /// <param name="client"></param>
         private void DisconnectClient(Client client)
         {
             Socket socket = client.Socket;
@@ -248,12 +287,16 @@ namespace Server
                     HandleFileInfoRequest(FileInfoRequest.ToClass(jsonData), state);
                     break;
                 case nameof(FileDownloadRequest):
-                    HandleFileDownloadRequest(FileDownloadRequest.ToClass(jsonData), state);
+                    HandleFileDownloadRequest(FileDownloadRequest.ToClass(jsonData), state.Client);
+                    break;
+                case nameof(FileUploadRequest):
+                    HandleFileUploadRequest(FileUploadRequest.ToClass(jsonData), state.Client);
                     break;
                 default:
                     break;
             }
         }
+
 
         /// <summary>
         /// Handelt een bestand info aanvraag af.
@@ -261,22 +304,56 @@ namespace Server
         /// <param name="request"></param>
         private void HandleFileInfoRequest(FileInfoRequest request, StateObject state)
         {
-            
+            string path = Settings.Default.FileFolder + request.ID;
+            bool exists = File.Exists(path);
+
+            FileInfoResponse response = new FileInfoResponse();
+            if (exists)
+            {
+                string text = File.ReadAllText(path + ".json");
+                dynamic json = JsonConvert.DeserializeObject(text);
+                NetworkFile file = Util.NetworkUtils.FromJson(json);
+                response = new FileInfoResponse(file);
+            }
+            SendPacket(state.Client, response, SendCallback, FollowUpTask.RECEIVE_MSG);
+            state.Client.Socket.BeginReceive(state.Buffer, 0, StateObject.BufferSize, 0, ReceiveMessageCallback, state);
         }
 
         /// <summary>
         /// Handelt een bestand download af.
         /// </summary>
         /// <param name="request"></param>
-        private void HandleFileDownloadRequest(FileDownloadRequest request, StateObject state)
+        private void HandleFileDownloadRequest(FileDownloadRequest request, Client client)
         {
-            
+            string path = Settings.Default.FileFolder + request.ID;
+            bool exists = File.Exists(path);
+         
+            if (exists)
+                client.Socket.BeginSendFile(path, SendFileCallback, client);
         }
 
-        private void HandleFileUploadRequest(FileUploadRequest request, StateObject state)
+        /// <summary>
+        /// Beëindigd de file send.
+        /// </summary>
+        /// <param name="ar"></param>
+        private void SendFileCallback(IAsyncResult ar)
         {
-            FileStateObject fileState = new FileStateObject(state.Client, request.FileName, request.FileSize);
-            state.Client.Socket.BeginReceive(state.Buffer, 0, FileStateObject.BufferSize, 0, ReceiveFileCallback, fileState);
+            Client client = (Client)ar.AsyncState;
+
+            client.Socket.EndSendFile(ar);
+
+            DisconnectClient(client);
+        }
+
+        /// <summary>
+        /// Handelt de bestand upload af.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="client"></param>
+        private void HandleFileUploadRequest(FileUploadRequest request, Client client)
+        {
+            FileStateObject state = new FileStateObject(client, request.File);
+            client.Socket.BeginReceive(state.Buffer, 0, FileStateObject.BufferSize, 0, ReceiveFileCallback, state);
         }
 
         /// <summary>
@@ -315,13 +392,15 @@ namespace Server
         {
             public new static int BufferSize { get { return 4096; } }
             public FileStream Output { get; set; }
-            public string FileName { get; private set; }
+            public NetworkFile File { get; private set; }
             public long BytesToReceive { get; private set; }
             public long BytesReceived { get; set; }
-            public FileStateObject(Client client, string fileName, long bytesToReceive):base(client)
+
+            public string ID { get; set; }
+            public FileStateObject(Client client, NetworkFile file):base(client)
             {
-                FileName = fileName;
-                BytesToReceive = bytesToReceive;
+                File = file;
+                BytesToReceive = file.FileSize;
             }
         }
 
