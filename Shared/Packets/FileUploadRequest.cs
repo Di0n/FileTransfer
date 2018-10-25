@@ -6,20 +6,20 @@ namespace Shared.Packets
 {
     class FileUploadRequest : IPacket
     {
-        public FileUploadRequest(string name, long size)
-        {
-            FileName = name;
-            FileSize = size;
-        }
-
-        public string FileName { get; private set; }
-        public long FileSize { get; private set; }
+        public NetworkFile File { get; private set; }
+        public FileUploadRequest(NetworkFile file) => File = file;
 
         public static IPacket ToClass(dynamic json)
         {
-            string fileName = (string)json.data.fileName;
+            string id = (string)json.data.id;
+            string name = (string)json.data.name;
+            string fileFormat = (string)json.data.fileFormat;
+            DateTime creationDate = DateTime.FromFileTime((long)json.data.creationDate);
             long fileSize = (long)json.data.fileSize;
-            return new FileUploadRequest(fileName, fileSize);
+            string description = (string)json.data.description;
+
+            return new FileUploadRequest(new NetworkFile(id, name, fileFormat,
+                creationDate, fileSize, description));
         }
 
         IPacket IPacket.ToClass(dynamic json)
@@ -34,8 +34,12 @@ namespace Shared.Packets
                 packetType = nameof(FileUploadRequest),
                 data = new
                 {
-                    fileName = FileName,
-                    fileSize = FileSize
+                    id = File.ID,
+                    name = File.Name,
+                    fileFormat = File.FileFormat,
+                    creationDate = File.CreationDate.ToFileTime(),
+                    fileSize = File.FileSize,
+                    description = File.Description
                 }
             };
         }

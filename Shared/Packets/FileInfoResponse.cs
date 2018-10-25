@@ -23,15 +23,22 @@ namespace Shared.Packets
         public NetworkFile File { get; private set; }
         public bool Exists { get; private set; }
         public FileInfoResponse() { }
-        public FileInfoResponse(NetworkFile file) => File = file;
+        public FileInfoResponse(NetworkFile file)
+        {
+            Exists = true;
+            File = file;
+        }
 
 
         public static IPacket ToClass(dynamic json)
         {
+            if (!((bool)json.exists))
+                return new FileInfoResponse();
+
             string id = (string)json.data.id;
             string name = (string)json.data.name;
             string fileFormat = (string)json.data.fileFormat;
-            DateTime creationDate = DateTime.FromFileTime((long)json.data.creationDate);
+            DateTime creationDate = DateTime.FromFileTimeUtc((long)json.data.creationDate);
             long fileSize = (long)json.data.fileSize;
             string description = (string)json.data.description;
 
@@ -56,7 +63,7 @@ namespace Shared.Packets
                             id = File.ID,
                             name = File.Name,
                             fileFormat = File.FileFormat,
-                            creationDate = File.CreationDate.ToFileTime(),
+                            creationDate = File.CreationDate.ToFileTimeUtc(),
                             fileSize = File.FileSize,
                             description = File.Description
                         }
@@ -65,8 +72,7 @@ namespace Shared.Packets
                 return new
                 {
                     packetType = nameof(FileInfoResponse),
-                    exists = Exists,
-                    data = new { }
+                    exists = Exists
                 };
         }
     }

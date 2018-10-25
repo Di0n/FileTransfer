@@ -62,9 +62,9 @@ namespace Shared
             //return Encoding.UTF8.GetString(data, 0, totalRead);
         }
 
-        public static async Task ReceiveFileAsync(this NetworkStream stream, string path, int bufferSize = 4096)
+        public static async Task ReceiveFileAsync(this NetworkStream stream, string path, long fileSize,  int bufferSize = 4096)
         {
-            byte[] sizeInfo = new byte[sizeof(Int64)];
+            /*byte[] sizeInfo = new byte[sizeof(Int64)];
 
             int sizeRead = 0;
             int currentRead = 0;
@@ -76,16 +76,16 @@ namespace Shared
             } while (sizeRead < sizeInfo.Length && currentRead > 0);
 
 
-            /* fileSize |= sizeInfo[0];
-             fileSize |= (((int)sizeInfo[1]) << 8);
-             fileSize |= (((int)sizeInfo[2]) << 16);
-             fileSize |= (((int)sizeInfo[3]) << 24);*/
-
+            // fileSize |= sizeInfo[0];
+             //fileSize |= (((int)sizeInfo[1]) << 8);
+             //fileSize |= (((int)sizeInfo[2]) << 16);
+             //fileSize |= (((int)sizeInfo[3]) << 24);
+             */
             using (FileStream fileStream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize, true))
             {
 
-                long fileSize = BitConverter.ToInt64(sizeInfo, 0);
-
+                //long fileSize = BitConverter.ToInt64(sizeInfo, 0);
+                int currentRead = 0;
                 byte[] data = new byte[bufferSize];
 
                 long fileRead = 0;
