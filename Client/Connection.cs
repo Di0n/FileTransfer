@@ -50,7 +50,7 @@ namespace Client
         public async Task ReceiveFileAsync(string fileName)
         {
             NetworkStream stream = client.GetStream();
-
+            
             byte[] sizeInfo = new byte[sizeof(Int64)];
 
             int sizeRead = 0;

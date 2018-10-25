@@ -63,8 +63,8 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Connection.cs" />
-    <Compile Include="DownloadProgressWindow.xaml.cs">
-      <DependentUpon>DownloadProgressWindow.xaml</DependentUpon>
+    <Compile Include="ProgressWindow.xaml.cs">
+      <DependentUpon>ProgressWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="DownloadSelectWindow.xaml.cs">
       <DependentUpon>DownloadSelectWindow.xaml</DependentUpon>
@@ -78,7 +78,7 @@
     </Compile>
     <Compile Include="Utils\FileIcon.cs" />
     <Compile Include="Utils\NativeFunctions.cs" />
-    <Page Include="DownloadProgressWindow.xaml">
+    <Page Include="ProgressWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

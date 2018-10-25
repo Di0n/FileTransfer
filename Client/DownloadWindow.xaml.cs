@@ -26,7 +26,7 @@ namespace Client
     public partial class DownloadWindow : Window
     {
         private Connection connection;
-        private DownloadProgressWindow progressWindow;
+        private ProgressWindow progressWindow;
         public DownloadWindow(NetworkFile file)
         {
             InitializeComponent();
@@ -42,7 +42,7 @@ namespace Client
             await connection.SendPacket(new FileDownloadRequest(File.ID));
             download_Button.IsEnabled = false;
 
-            progressWindow = new DownloadProgressWindow();
+            progressWindow = new ProgressWindow();
             progressWindow.Owner = this;
             progressWindow.Show();
             await progressWindow.StartDownload(connection, File);
@@ -54,6 +54,7 @@ namespace Client
             //BitmapImage img = GetBitmapImage(icon);
 
             //fileIcon_Image.Source = img;
+            //fileIcon_Image.Source = GetBitmapImage(FileIcon.GetJumboIcon(File.FileFormat));
             fileName_Textblock.Text = "Name: " + File.Name;
             fileSize_Textblock.Text = "File Size: " + File.FileSize.ToString();
             fileFormat_Textblock.Text = "Format: " + File.FileFormat;

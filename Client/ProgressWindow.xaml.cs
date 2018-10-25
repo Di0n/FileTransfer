@@ -16,12 +16,12 @@ using System.Windows.Shapes;
 namespace Client
 {
     /// <summary>
-    /// Interaction logic for DownloadProgressWindow.xaml
+    /// Interaction logic for ProgressWindow.xaml
     /// </summary>
-    public partial class DownloadProgressWindow : Window
+    public partial class ProgressWindow : Window
     {
         private NetworkFile file;
-        public DownloadProgressWindow()
+        public ProgressWindow()
         {
             InitializeComponent();
         }
