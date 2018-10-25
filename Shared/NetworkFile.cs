@@ -17,11 +17,12 @@ namespace Shared
             FileSize = fileSize;
             Description = description;
         }
-        public string ID { get; private set; }
-        public string Name { get; private set; }
-        public string FileFormat { get; private set; }
-        public DateTime CreationDate { get; private set; }
-        public long FileSize { get; private set; }
-        public string Description { get; private set; }
+        public string ID { get; set; }
+        public string Name { get; set; }
+        public string FileFormat { get; set; }
+        public DateTime CreationDate { get; set; }
+        public long FileSize { get; set; }
+        public string Description { get;set; }
+
     }
 }

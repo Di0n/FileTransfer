@@ -47,45 +47,63 @@ namespace Client
                 return null;
         }
 
-        public async Task ReceiveFileAsync(string fileName)
+        public async Task ReceiveFileAsync(string path, long fileSize)
         {
             NetworkStream stream = client.GetStream();
-            
-            byte[] sizeInfo = new byte[sizeof(Int64)];
-
-            int sizeRead = 0;
-            int currentRead = 0;
-
-            do
-            {
-                currentRead = await stream.ReadAsync(sizeInfo, sizeRead, sizeInfo.Length - sizeRead);
-                sizeRead += currentRead;
-            } while (sizeRead < sizeInfo.Length && currentRead > 0);
-
-
-            /* fileSize |= sizeInfo[0];
-             fileSize |= (((int)sizeInfo[1]) << 8);
-             fileSize |= (((int)sizeInfo[2]) << 16);
-             fileSize |= (((int)sizeInfo[3]) << 24);*/
-            int bufferSize = Settings.Default.FileBufferSize;
-            using (FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize, true))
+            int bufferSize = Settings.Default.FileTransferBufferSize;
+            using (FileStream fileStream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, Settings.Default.FileWriteBufferSize, true))
             {
 
-                long fileSize = BitConverter.ToInt64(sizeInfo, 0);
-                
+                //long fileSize = BitConverter.ToInt64(sizeInfo, 0);
+                int currentRead = 0;
                 byte[] data = new byte[bufferSize];
 
                 long fileRead = 0;
                 do
                 {
-                    
                     long remainingBytes = fileSize - fileRead;
                     fileRead += currentRead = await stream.ReadAsync(data, 0, remainingBytes < bufferSize ? (int)remainingBytes : bufferSize);
+
                     Task writeTask = fileStream.WriteAsync(data, 0, currentRead);
                     await InvokeFileProgressChanged(new ProgressEventArgs(fileRead, fileSize, 0));
                     await writeTask;
                 } while (fileRead < fileSize && currentRead > 0);
             }
+            //byte[] sizeInfo = new byte[sizeof(Int64)];
+
+            //int sizeRead = 0;
+            //int currentRead = 0;
+
+            //do
+            //{
+            //    currentRead = await stream.ReadAsync(sizeInfo, sizeRead, sizeInfo.Length - sizeRead);
+            //    sizeRead += currentRead;
+            //} while (sizeRead < sizeInfo.Length && currentRead > 0);
+
+
+            ///* fileSize |= sizeInfo[0];
+            // fileSize |= (((int)sizeInfo[1]) << 8);
+            // fileSize |= (((int)sizeInfo[2]) << 16);
+            // fileSize |= (((int)sizeInfo[3]) << 24);*/
+            //int bufferSize = Settings.Default.FileBufferSize;
+            //using (FileStream fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize, true))
+            //{
+
+            //    long fileSize = BitConverter.ToInt64(sizeInfo, 0);
+
+            //    byte[] data = new byte[bufferSize];
+
+            //    long fileRead = 0;
+            //    do
+            //    {
+
+            //        long remainingBytes = fileSize - fileRead;
+            //        fileRead += currentRead = await stream.ReadAsync(data, 0, remainingBytes < bufferSize ? (int)remainingBytes : bufferSize);
+            //        Task writeTask = fileStream.WriteAsync(data, 0, currentRead);
+            //        await InvokeFileProgressChanged(new ProgressEventArgs(fileRead, fileSize, 0));
+            //        await writeTask;
+            //    } while (fileRead < fileSize && currentRead > 0);
+            //}
         }
 
         private Task InvokeFileProgressChanged(ProgressEventArgs args) 

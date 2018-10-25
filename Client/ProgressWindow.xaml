@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="Action {FileName}..." Height="154.36" Width="415" Topmost="True" WindowStartupLocation="CenterOwner" ResizeMode="CanMinimize" Loaded="WindowLoaded">
     <Grid>
-        <ProgressBar HorizontalAlignment="Left" Height="20" Margin="10,47,0,0" VerticalAlignment="Top" Width="380"/>
+        <ProgressBar x:Name="progressBar_Pb" HorizontalAlignment="Left" Height="20" Margin="10,47,0,0" VerticalAlignment="Top" Width="380"/>
         <TextBlock x:Name="fileName_Textblock" HorizontalAlignment="Left" Margin="10,10,0,0" TextWrapping="Wrap" Text="File: example.zip" VerticalAlignment="Top"/>
         <TextBlock x:Name="estimatedTime_Textblock" HorizontalAlignment="Left" Margin="274,10,0,0" TextWrapping="Wrap" Text="Estimated time: 50s" VerticalAlignment="Top"/>
         <TextBlock x:Name="progress_Textblock" HorizontalAlignment="Left" Margin="10,72,0,0" TextWrapping="Wrap" Text="2500/7000" VerticalAlignment="Top"/>

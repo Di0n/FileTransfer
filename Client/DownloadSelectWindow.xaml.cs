@@ -94,8 +94,7 @@ namespace Client
             {
 
             };
-            await connection.ReceiveFileAsync(file.Name);
-
+            await connection.ReceiveFileAsync(file.Name, file.FileSize);
         }
 
 
@@ -104,11 +103,11 @@ namespace Client
 
         private void WindowClosing(object sender, CancelEventArgs e)
         {
-            lock (windows)
+           /* lock (windows)
             {
                 windows.ForEach(w => w?.Close());
                 windows.Clear();
-            }
+            }*/
         }
     }
 }

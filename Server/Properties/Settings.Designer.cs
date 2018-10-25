@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Client.Properties {
+namespace Server.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
@@ -25,10 +25,10 @@ namespace Client.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("127.0.0.1")]
-        public string ServerIP {
+        [global::System.Configuration.DefaultSettingValueAttribute("Files\\\\")]
+        public string FileFolder {
             get {
-                return ((string)(this["ServerIP"]));
+                return ((string)(this["FileFolder"]));
             }
         }
         
@@ -43,6 +43,15 @@ namespace Client.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1024")]
+        public int MessageBufferSize {
+            get {
+                return ((int)(this["MessageBufferSize"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("4096")]
         public int FileWriteBufferSize {
             get {
@@ -52,34 +61,13 @@ namespace Client.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Downloads\\\\")]
-        public string DownloadPath {
-            get {
-                return ((string)(this["DownloadPath"]));
-            }
-            set {
-                this["DownloadPath"] = value;
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("4096")]
-        public int FileTransferBufferSize {
+        public string FileTransferBufferSize {
             get {
-                return ((int)(this["FileTransferBufferSize"]));
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1024")]
-        public int PacketBufferSize {
-            get {
-                return ((int)(this["PacketBufferSize"]));
+                return ((string)(this["FileTransferBufferSize"]));
             }
             set {
-                this["PacketBufferSize"] = value;
+                this["FileTransferBufferSize"] = value;
             }
         }
     }
