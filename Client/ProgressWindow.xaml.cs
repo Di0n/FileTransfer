@@ -30,6 +30,8 @@ namespace Client
         internal Task StartDownload(Connection connection, NetworkFile file)
         {
             this.file = file;
+            this.Title = file.Name;
+            fileName_Textblock.Text = file.Name;
             connection.FileTransferProgressChanged += FileTransferProgressChanged;
             progressBar_Pb.Maximum = file.FileSize;
             return Task.Run(async () =>

@@ -49,13 +49,66 @@ namespace Client
 
         public Task SendFileAsync(string path)
         {
-            return Task.Factory.FromAsync(client.Client.BeginSendFile(path, SendFileCallback, null), SendFileCallback);
+            return Task.Factory.FromAsync(client.Client.BeginSendFile(path, null, null), SendFileCallback);
         }
 
         private void SendFileCallback(IAsyncResult ar)
         {
             client.Client.EndSendFile(ar);
         }
+
+        
+        private byte[] buffer = new byte[Settings.Default.FileTransferBufferSize];
+        public void BeginReceiveFile(string path, long fileSize)
+        {
+            var stream = client.GetStream();
+            var fileStream = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None, Settings.Default.FileWriteBufferSize, false);
+            //stream.BeginRead(buffer, 0, Settings.Default.FileTransferBufferSize, ReadFileCallback, new Tuple<FileStream, long>(fileStream, fileSize));
+        }
+
+        /*private void ReadFileCallback(IAsyncResult ar)
+        {
+            var tuple = (Tuple<FileStream, long>)ar.AsyncState;
+
+            FileStream fs = tuple.Item1;
+            long size = tuple.Item2;
+
+            NetworkStream stream = client.GetStream();
+            int read = stream.EndRead(ar);
+
+            if (read > 0)
+            {
+                fs.BeginWrite(buffer, 0, read, WriteFileCallback, state);
+            }
+            else
+            {
+                throw new Exception("Read 0"); // DEBUG
+            }
+        }
+
+        /// <summary>
+        /// Callback voor download schrijven naar bestand.
+        /// </summary>
+        /// <param name="ar"></param>
+        private void WriteFileCallback(IAsyncResult ar)
+        {
+            FileState state = (FileState)ar.AsyncState;
+            state.EndWrite(ar);
+
+            Socket handler = state.Client.Socket;
+
+            if (state.BytesToReceive == state.BytesReceived)
+            {
+                string json = JsonConvert.SerializeObject(NetworkUtils.ToJson(state.File));
+                File.WriteAllText(Settings.Default.FileFolder + state.ID + ".json", json);
+                SendPacket(state.Client, new DownloadID(state.ID), SendCallback, FollowUpTask.DISCONNECT);
+            }
+            else
+                handler.BeginReceive(state.Buffer, 0, FileStateObject.BufferSize, 0, ReceiveFileCallback,
+                    state);
+        }*/
+
+
 
         public async Task ReceiveFileAsync(string path, long fileSize)
         {
