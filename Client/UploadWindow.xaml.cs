@@ -87,7 +87,9 @@ namespace Client
             progressWindow.Show();
             await progressWindow.StartUpload(connection, fi);
             DownloadID id = await connection.ReceivePacket() as DownloadID;
-            MessageBox.Show(id.ID);
+            //MessageBox.Show("Upload complete! Your download code is: " + id.ID, "Upload complete!");
+
+            new UploadCompleteWindow(id.ID).ShowDialog();
         }
     }
 }
