@@ -37,6 +37,7 @@ namespace Client
 
         private async void DownloadClick(object sender, RoutedEventArgs e)
         {
+            Directory.CreateDirectory("Downloads");
             connection = new Connection();
             await connection.Connect(Settings.Default.ServerIP, Settings.Default.ServerPort);
             await connection.SendPacket(new FileDownloadRequest(File.ID));
@@ -45,7 +46,14 @@ namespace Client
             progressWindow = new ProgressWindow();
             progressWindow.Owner = this;
             progressWindow.Show();
-            await progressWindow.StartDownload(connection, File);
+            try
+            {
+                await progressWindow.StartDownload(connection, File);
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Er ging iets fout.");
+            }
         }
 
         private void WindowLoaded(object sender, RoutedEventArgs e)

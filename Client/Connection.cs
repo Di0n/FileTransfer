@@ -57,7 +57,20 @@ namespace Client
             client.Client.EndSendFile(ar);
         }
 
-        
+       /* public void SendFileAsync2(string path)
+        {
+            client.Client.BeginSend(buffer, 0, Settings.Default.FileTransferBufferSize, 0, SendCallback, null);
+        }
+
+        private void SendCallback(IAsyncResult ar)
+        {
+            fs = fs ?? new Func<FileStream>(() =>
+            {
+                return new FileStream(fileName + state.File.FileFormat, FileMode.CreateNew, FileAccess.Write, FileShare.None, Settings.Default.FileWriteBufferSize, false); // TODO onderzoek
+            })();
+            fs.BeginWrite(state.Buffer, 0, read, WriteFileCallback, state);
+        }
+        FileStream fs;*/
         private byte[] buffer = new byte[Settings.Default.FileTransferBufferSize];
         public void BeginReceiveFile(string path, long fileSize)
         {
