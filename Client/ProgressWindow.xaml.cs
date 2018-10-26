@@ -41,14 +41,15 @@ namespace Client
             });
         }
 
-        internal Task StartUpload(Connection connection, FileStream file)
+        internal Task StartUpload(Connection connection, FileInfo fi)
         {
             connection.FileTransferProgressChanged += FileTransferProgressChanged;
-            progressBar_Pb.Maximum = file.Length;
-            return Task.Run(async () =>
+            progressBar_Pb.Maximum = fi.Length;
+            return connection.SendFileAsync(fi.FullName);
+            /*return Task.Run(async () =>
             {
-                await connection.SendFileAsync(file.Name);
-            });
+                await connection.SendFileAsync(fi.FullName);
+            });*/
         }
 
         private async void FileTransferProgressChanged(object sender, ProgressEventArgs args)

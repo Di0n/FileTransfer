@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Client"
         mc:Ignorable="d"
-        Title="DownloadWindow" Height="310" Width="460" ResizeMode="CanMinimize" Loaded="WindowLoaded">
+        Title="DownloadWindow" Height="310" Width="460" ResizeMode="CanMinimize" Loaded="WindowLoaded" Closing="WindowClosing">
     <Grid>
         <Image x:Name="fileIcon_Image" HorizontalAlignment="Left" Height="100" Margin="10,10,0,0" VerticalAlignment="Top" Width="100" Source="Images/File-Format-ZIP-256.png"/>
         <TextBlock x:Name="fileName_Textblock" HorizontalAlignment="Left" Margin="115,10,0,0" TextWrapping="Wrap" Text="Name: example.docx" VerticalAlignment="Top"/>

@@ -34,7 +34,7 @@ namespace Server.Util
                 id = file.ID,
                 fileName = file.Name,
                 fileFormat = file.FileFormat,
-                creationDate = file.CreationDate,
+                creationDate = file.CreationDate.ToBinary(),
                 fileSize = file.FileSize,
                 description = file.Description
             };

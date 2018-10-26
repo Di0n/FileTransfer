@@ -31,6 +31,7 @@ namespace Client
         private string fileName;
         private string fileType;
         private string fileSize;
+        string fullName;
 
         public UploadWindow(FileStream selectedFile)
         {
@@ -39,6 +40,7 @@ namespace Client
             InitializeComponent();
 
             string fullFileName = selectedFile.Name;
+            fullName = fullFileName;
             fileName = fullFileName.Split('\\')[fullFileName.Split('\\').Length -1];
             fileType = "." + fileName.Split('.')[fileName.Split('.').Length -1];
             fileSize = ExtensionMethods.ConvertFileSize(selectedFile.Length, ExtensionMethods.SizeUnit.kB);
@@ -76,13 +78,16 @@ namespace Client
             // Actually upload the file
             connection = new Connection();
 
+            FileInfo fi = new FileInfo(fullName);
             await connection.Connect(Settings.Default.ServerIP, Settings.Default.ServerPort);
-            await connection.SendPacket(new FileUploadRequest(new NetworkFile("", fileName, fileType, DateTime.Now, uploadFile.Length, fileDesc )));
+            await connection.SendPacket(new FileUploadRequest(new NetworkFile(fi.Name, fi.Extension, fi.CreationTimeUtc, fi.Length, fileDesc )));
 
             progressWindow = new ProgressWindow();
             progressWindow.Owner = this;
             progressWindow.Show();
-            await progressWindow.StartUpload(connection, uploadFile);
+            await progressWindow.StartUpload(connection, fi);
+            DownloadID id = await connection.ReceivePacket() as DownloadID;
+            MessageBox.Show(id.ID);
         }
     }
 }

@@ -179,6 +179,8 @@ namespace Client
             {
                 case nameof(FileInfoResponse):
                     return FileInfoResponse.ToClass(jsonData);
+                case nameof(DownloadID):
+                    return DownloadID.ToClass(jsonData);
                 default:
                     return null;
             }

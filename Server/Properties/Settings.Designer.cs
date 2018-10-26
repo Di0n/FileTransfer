@@ -59,15 +59,12 @@ namespace Server.Properties {
             }
         }
         
-        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("4096")]
-        public string FileTransferBufferSize {
+        public int FileTransferBufferSize {
             get {
-                return ((string)(this["FileTransferBufferSize"]));
-            }
-            set {
-                this["FileTransferBufferSize"] = value;
+                return ((int)(this["FileTransferBufferSize"]));
             }
         }
     }
