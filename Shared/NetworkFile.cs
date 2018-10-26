@@ -7,6 +7,17 @@ namespace Shared
     public class NetworkFile
     {
         public NetworkFile() { }
+
+        public NetworkFile(string name, string fileFormat,
+           DateTime creationDate, long fileSize, string description)
+        {
+            ID = "";
+            Name = name;
+            FileFormat = fileFormat;
+            CreationDate = creationDate;
+            FileSize = fileSize;
+            Description = description;
+        }
         public NetworkFile(string id, string name, string fileFormat,
             DateTime creationDate, long fileSize, string description)
         {

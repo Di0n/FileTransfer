@@ -14,7 +14,7 @@ namespace Shared.Packets
             string id = (string)json.data.id;
             string name = (string)json.data.name;
             string fileFormat = (string)json.data.fileFormat;
-            DateTime creationDate = DateTime.FromFileTime((long)json.data.creationDate);
+            DateTime creationDate = DateTime.FromBinary((long)json.data.creationDate);
             long fileSize = (long)json.data.fileSize;
             string description = (string)json.data.description;
 
@@ -37,7 +37,7 @@ namespace Shared.Packets
                     id = File.ID,
                     name = File.Name,
                     fileFormat = File.FileFormat,
-                    creationDate = File.CreationDate.ToFileTime(),
+                    creationDate = File.CreationDate.ToBinary(),
                     fileSize = File.FileSize,
                     description = File.Description
                 }

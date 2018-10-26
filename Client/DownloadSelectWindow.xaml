@@ -14,7 +14,7 @@
                gif:ImageBehavior.AnimatedSource="Images/Loading-Gears-200.gif" 
                gif:ImageBehavior.AutoStart="False"
                Margin="63,136,68.6,10" />
-        <TextBlock x:Name="status_Textblock" HorizontalAlignment="Left" Margin="95,105,0,0" TextWrapping="Wrap" Text="Status..." VerticalAlignment="Top" FontStyle="Italic"/>
+        <TextBlock x:Name="status_Textblock" HorizontalAlignment="Left" Margin="87,105,0,0" TextWrapping="Wrap" Text="Status..." VerticalAlignment="Top" FontStyle="Italic"/>
 
     </Grid>
 </Window>

@@ -78,5 +78,12 @@ namespace Client
             return bitmap;
         }
 
+        private void WindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (fileIcon_Image.Source != null)
+            {
+                //FileIcon.DisposeIcon();
+            }
+        }
     }
 }

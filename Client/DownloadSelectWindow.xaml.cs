@@ -54,12 +54,11 @@ namespace Client
             await connection.SendPacket(request);
             FileInfoResponse response = await connection.ReceivePacket() as FileInfoResponse;
             connection.Close();
+            await Task.Delay(1000);
             status_Textblock.Text = "Got response...";
             controller.Pause();
 
-            await Task.Delay(1000);
-
-            if (response != null)
+            if (response != null && response.Exists)
             {
                 DownloadWindow window = new DownloadWindow(response.File);
                 window.Owner = this;

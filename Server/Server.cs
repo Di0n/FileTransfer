@@ -152,13 +152,14 @@ namespace Server
 
             if (read > 0)
             {
+                state.BytesReceived += read;
                 state.Output = state.Output ?? new Func<FileStream>(() =>
                 {
                     string id = RandomIDGenerator.GetBase62(5);
                     state.ID = id;
                     string fileName = Settings.Default.FileFolder + id;
 
-                    return new FileStream(fileName, FileMode.CreateNew, FileAccess.Write, FileShare.None, Settings.Default.FileWriteBufferSize, true);
+                    return new FileStream(fileName+state.File.FileFormat, FileMode.CreateNew, FileAccess.Write, FileShare.None, Settings.Default.FileWriteBufferSize, false); // TODO onderzoek
                 })();
                 state.Output.BeginWrite(state.Buffer, 0, read, WriteFileCallback, state);
             }
@@ -181,6 +182,7 @@ namespace Server
 
             if (state.BytesToReceive == state.BytesReceived)
             {
+                state.Output.Close();
                 string json = JsonConvert.SerializeObject(NetworkUtils.ToJson(state.File));
                 File.WriteAllText(Settings.Default.FileFolder + state.ID + ".json", json);
                 SendPacket(state.Client, new DownloadID(state.ID), SendCallback, FollowUpTask.DISCONNECT);
@@ -385,7 +387,8 @@ namespace Server
         private void HandleFileUploadRequest(FileUploadRequest request, Client client)
         {
             FileStateObject state = new FileStateObject(client, request.File);
-            client.Socket.BeginReceive(state.Buffer, 0, FileStateObject.BufferSize, 0, ReceiveFileCallback, state);
+            Receive(client, state.Buffer, 0, FileStateObject.BufferSize, 0, ReceiveFileCallback, state);
+            //client.Socket.BeginReceive(state.Buffer, 0, FileStateObject.BufferSize, 0, ReceiveFileCallback, state);
         }
 
         /// <summary>
@@ -402,7 +405,7 @@ namespace Server
         {
             public Client Client { get; private set; }
             public static int BufferSize { get { return Settings.Default.MessageBufferSize; } }
-            public byte[] Buffer { get; private set; }
+            public byte[] Buffer { get; protected set; }
             public StateObject(Client client)
             {
                 this.Client = client;
@@ -422,7 +425,7 @@ namespace Server
 
         private class FileStateObject : StateObject
         {
-            public new static int BufferSize { get { return Settings.Default.FileWriteBufferSize; } }
+            public new static int BufferSize { get { return Settings.Default.FileTransferBufferSize; } }
             public FileStream Output { get; set; }
             public NetworkFile File { get; private set; }
             public long BytesToReceive { get; private set; }
@@ -433,6 +436,7 @@ namespace Server
             {
                 File = file;
                 BytesToReceive = file.FileSize;
+                Buffer = new byte[BufferSize];
             }
         }
 
