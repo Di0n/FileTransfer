@@ -270,10 +270,11 @@ namespace Server
             }
             catch (SocketException sx)
             {
-                if (sx.SocketErrorCode == SocketError.ConnectionAborted)
+                if (sx.SocketErrorCode == SocketError.ConnectionAborted || sx.SocketErrorCode == SocketError.ConnectionReset)
                 {
                     ClientDisconnected(client);
                 }
+                
                 else
                     throw sx;
             }
