@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Client"
         mc:Ignorable="d"
-        Title="UploadCompleteWindow" Height="126.473" Width="251.947" WindowStartupLocation="CenterScreen">
+        Title="UploadCompleteWindow" Height="126.473" Width="251.947" WindowStartupLocation="CenterScreen" Topmost="True">
     <Grid IsEnabled="True">
         <Label Content="Upload complete! Your download code is: " HorizontalAlignment="Left" Margin="9,9,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="txtDownloadCode" IsReadOnly="True" HorizontalAlignment="Left" Height="23" Margin="9,40,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120" />
