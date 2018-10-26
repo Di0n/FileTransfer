@@ -47,6 +47,16 @@ namespace Client
                 return null;
         }
 
+        public Task SendFileAsync(string path)
+        {
+            return Task.Factory.FromAsync(client.Client.BeginSendFile(path, SendFileCallback, null), SendFileCallback);
+        }
+
+        private void SendFileCallback(IAsyncResult ar)
+        {
+            client.Client.EndSendFile(ar);
+        }
+
         public async Task ReceiveFileAsync(string path, long fileSize)
         {
             NetworkStream stream = client.GetStream();
