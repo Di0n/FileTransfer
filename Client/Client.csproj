@@ -73,6 +73,9 @@
       <DependentUpon>DownloadWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Events\ProgressEventArgs.cs" />
+    <Compile Include="UploadCompleteWindow.xaml.cs">
+      <DependentUpon>UploadCompleteWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UploadSelectWindow.xaml.cs">
       <DependentUpon>UploadSelectWindow.xaml</DependentUpon>
     </Compile>
@@ -105,6 +108,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="UploadCompleteWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="UploadSelectWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
