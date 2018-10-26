@@ -95,16 +95,24 @@ namespace Server
             MessageState state = new MessageState(client);
 
 
-            client.Socket.BeginReceive(state.Buffer, 0, MessageState.BufferSize, 0, ReceiveMessageCallback, state);
+            //client.Socket.BeginReceive(state.Buffer, 0, MessageState.BufferSize, 0, ReceiveMessageCallback, state);
+            Receive(client.Socket, state.Buffer, 0, MessageState.BufferSize, 0, ReceiveMessageCallback, state);
         }
 
         private void ReceiveMessageCallback(IAsyncResult ar)
         {
             MessageState state = (MessageState)ar.AsyncState;
             Socket handler = state.Client.Socket;
+            int read = 0;
+            try
+            {
+                read = handler.EndReceive(ar);
+            }
+            catch (System.IO.IOException)
+            {
 
-            int read = handler.EndReceive(ar);
-
+            }
+            catch (SocketException) { }
             state.Data = state.Data.Combine(state.Buffer, read);
 
             while (state.Data.Length >= sizeof(Int32))
@@ -139,7 +147,8 @@ namespace Server
                 }
                 else break;
             }
-            handler.BeginReceive(state.Buffer, 0, MessageState.BufferSize, 0, ReceiveCallback, state);
+            //handler.BeginReceive(state.Buffer, 0, MessageState.BufferSize, 0, ReceiveCallback, state);
+            Receive(handler, state.Buffer, 0, MessageState.BufferSize, 0, ReceiveMessageCallback, state);
         }
 
         private void ReceiveFileCallback(IAsyncResult ar)
@@ -147,9 +156,19 @@ namespace Server
             FileStateObject state = (FileStateObject)ar.AsyncState;
 
             Socket handler = state.Client.Socket;
+            int read = 0;
+            try
+            {
+                read = handler.EndReceive(ar);
+            }
+            catch (SocketException sx)
+            {
 
-            int read = handler.EndReceive(ar);
+            }
+            catch (System.IO.IOException)
+            {
 
+            }
             if (read > 0)
             {
                 state.BytesReceived += read;
@@ -188,8 +207,9 @@ namespace Server
                 SendPacket(state.Client, new DownloadID(state.ID), SendCallback, FollowUpTask.DISCONNECT);
             }
             else
-                handler.BeginReceive(state.Buffer, 0, FileStateObject.BufferSize, 0, ReceiveFileCallback,
-                    state);
+                Receive(handler, state.Buffer, 0, FileStateObject.BufferSize, 0, ReceiveFileCallback, state);
+                /*handler.BeginReceive(state.Buffer, 0, FileStateObject.BufferSize, 0, ReceiveFileCallback,
+                    state);*/
         }
 
         /// <summary>
@@ -201,6 +221,9 @@ namespace Server
         /// <param name="task"></param>
         private void SendPacket(Client client, IPacket packet, AsyncCallback callback, FollowUpTask task)
         {
+#if DEBUG
+            Console.WriteLine($"Sending packet to {client.Socket.RemoteEndPoint}");
+#endif
             Socket handler = client.Socket;
             byte[] buffer = Util.NetworkUtils.CreatePacket(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(packet.ToJson())));
             handler.BeginSend(buffer, 0, buffer.Length, 0, callback, new Tuple<Client, FollowUpTask>(client, task));
@@ -228,7 +251,7 @@ namespace Server
                 case FollowUpTask.RECEIVE_MSG:
                     MessageState state = new MessageState(client);
                     //handler.BeginReceive(state.Buffer, 0, StateObject.BufferSize, 0, ReceiveCallback, state);
-                    Receive(client, state.Buffer, 0, StateObject.BufferSize, 0, ReceiveCallback, state);
+                    Receive(client, state.Buffer, 0, StateObject.BufferSize, 0, ReceiveMessageCallback, state);
                     break;
                 case FollowUpTask.DISCONNECT:
                     DisconnectClient(client);
@@ -374,7 +397,14 @@ namespace Server
         {
             Client client = (Client)ar.AsyncState;
 
-            client.Socket.EndSendFile(ar);
+            try
+            {
+                client.Socket.EndSendFile(ar);
+            }
+            catch (SocketException)
+            {
+
+            }
 
             DisconnectClient(client);
         }
