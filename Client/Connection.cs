@@ -49,7 +49,7 @@ namespace Client
 
         public Task SendFileAsync(string path)
         {
-            return Task.Factory.FromAsync(client.Client.BeginSendFile(path, SendFileCallback, null), SendFileCallback);
+            return Task.Factory.FromAsync(client.Client.BeginSendFile(path, null, null), SendFileCallback);
         }
 
         private void SendFileCallback(IAsyncResult ar)

@@ -1,5 +1,7 @@
-﻿using Client.Utils;
+﻿using Client.Properties;
+using Client.Utils;
 using Shared;
+using Shared.Packets;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -22,8 +24,13 @@ namespace Client
     /// </summary>
     public partial class UploadWindow : Window
     {
+        private ProgressWindow progressWindow;
         private Connection connection;
         private FileStream uploadFile;
+
+        private string fileName;
+        private string fileType;
+        private string fileSize;
 
         public UploadWindow(FileStream selectedFile)
         {
@@ -32,9 +39,9 @@ namespace Client
             InitializeComponent();
 
             string fullFileName = selectedFile.Name;
-            string fileName = fullFileName.Split('\\')[fullFileName.Split('\\').Length -1];
-            string fileType = "." + fileName.Split('.')[fileName.Split('.').Length -1];
-            string fileSize = ExtensionMethods.ConvertFileSize(selectedFile.Length, ExtensionMethods.SizeUnit.kB);
+            fileName = fullFileName.Split('\\')[fullFileName.Split('\\').Length -1];
+            fileType = "." + fileName.Split('.')[fileName.Split('.').Length -1];
+            fileSize = ExtensionMethods.ConvertFileSize(selectedFile.Length, ExtensionMethods.SizeUnit.kB);
 
 
             fileIcon_Image.Source = GetBitmapImage(FileIcon.GetJumboIcon(fileType));
@@ -60,10 +67,22 @@ namespace Client
             return bitmap;
         }
 
-        private void btnUpload_Click(object sender, RoutedEventArgs e)
+        private async void btnUpload_Click(object sender, RoutedEventArgs e)
         {
+            string fileDesc = "";
+            if (txtDescription.Text != "Enter a description...")
+                fileDesc = txtDescription.Text;
+
             // Actually upload the file
             connection = new Connection();
+
+            await connection.Connect(Settings.Default.ServerIP, Settings.Default.ServerPort);
+            await connection.SendPacket(new FileUploadRequest(new NetworkFile("", fileName, fileType, DateTime.Now, uploadFile.Length, fileDesc )));
+
+            progressWindow = new ProgressWindow();
+            progressWindow.Owner = this;
+            progressWindow.Show();
+            await progressWindow.StartUpload(connection, uploadFile);
         }
     }
 }

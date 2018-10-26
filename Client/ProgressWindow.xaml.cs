@@ -2,6 +2,7 @@
 using Shared;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -35,6 +36,16 @@ namespace Client
             return Task.Run(async () =>
             {
                 await connection.ReceiveFileAsync(Settings.Default.DownloadPath + file.Name, file.FileSize);
+            });
+        }
+
+        internal Task StartUpload(Connection connection, FileStream file)
+        {
+            connection.FileTransferProgressChanged += FileTransferProgressChanged;
+            progressBar_Pb.Maximum = file.Length;
+            return Task.Run(async () =>
+            {
+                await connection.SendFileAsync(file.Name);
             });
         }
 
