@@ -122,7 +122,8 @@ namespace Client
         }*/
 
 
-
+        // https://stackoverflow.com/questions/39353119/filestream-readasync-very-slow-compared-to-read
+        // https://stackoverflow.com/questions/22686467/use-task-run-instead-of-delegate-begininvoke
         public async Task ReceiveFileAsync(string path, long fileSize)
         {
             NetworkStream stream = client.GetStream();

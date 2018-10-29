@@ -178,7 +178,7 @@ namespace Server
                     state.ID = id;
                     string fileName = Settings.Default.FileFolder + id;
 
-                    return new FileStream(fileName+state.File.FileFormat, FileMode.CreateNew, FileAccess.Write, FileShare.None, Settings.Default.FileWriteBufferSize, false); // TODO onderzoek
+                    return new FileStream(fileName+state.File.FileFormat, FileMode.CreateNew, FileAccess.Write, FileShare.None, Settings.Default.FileWriteBufferSize, true); // TODO onderzoek
                 })();
                 state.Output.BeginWrite(state.Buffer, 0, read, WriteFileCallback, state);
             }

@@ -35,11 +35,10 @@ namespace Client
             fileName_Textblock.Text = file.Name;
             connection.FileTransferProgressChanged += FileTransferProgressChanged;
             progressBar_Pb.Maximum = file.FileSize;
-            return Task.Run(async () =>
+            return Task.Run(() =>
             {
-                await connection.ReceiveFileAsync(Settings.Default.DownloadPath + file.Name, file.FileSize);
+                return connection.ReceiveFileAsync(Settings.Default.DownloadPath + file.Name, file.FileSize).ConfigureAwait(false);
             });
-
         }
 
         internal Task StartUpload(Connection connection, FileInfo fi)
