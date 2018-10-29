@@ -7,7 +7,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "Client\Client.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server", "Server\Server.csproj", "{1B1D797D-72C0-4DA4-BF7D-F37374883F6E}"
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Shared", "Shared\Shared.shproj", "{E3936B8F-720B-4E75-A961-EC9231FDA45B}"
+EndProject
 Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Shared\Shared.projitems*{1b1d797d-72c0-4da4-bf7d-f37374883f6e}*SharedItemsImports = 4
+		Shared\Shared.projitems*{508a9af5-9ce5-4779-bb3e-e0bfc1a9a700}*SharedItemsImports = 4
+		Shared\Shared.projitems*{e3936b8f-720b-4e75-a961-ec9231fda45b}*SharedItemsImports = 13
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
